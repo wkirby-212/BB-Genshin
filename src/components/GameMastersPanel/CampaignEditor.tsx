@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import type { CampaignEditorProps } from "../../types";
 
-export default function CampaignEditor({ initial, onSave, onCancel }) {
+export default function CampaignEditor({ initial, onSave, onCancel }: CampaignEditorProps) {
   const [name, setName] = useState(initial?.name || "");
   const [notes, setNotes] = useState(initial?.notes || "");
-  function handleSubmit(e) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
     const camp = {

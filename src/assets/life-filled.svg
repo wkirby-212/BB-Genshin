@@ -1,0 +1,14 @@
+<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+  <!-- Subtle fill beneath the strokes -->
+  <g>
+    <path d="M18 6 L32 30 Q18 22 4 30 Z" fill="#33c682" fill-opacity="0.20"></path>
+    <path d="M18 6 Q25 22 32 30 Q24 14 18 6 Z" fill="#33c682" fill-opacity="0.20"></path>
+    <path d="M18 6 Q11 22 4 30 Q18 14 18 6 Z" fill="#33c682" fill-opacity="0.20"></path>
+  </g>
+  <!-- Main sharp triquetra outline -->
+  <g stroke="#33c682" stroke-width="2.8" fill="none" stroke-linejoin="miter">
+    <path d="M18 6 L32 30 Q18 22 4 30 Z"></path>
+    <path d="M18 6 Q25 22 32 30 Q24 14 18 6 Z"></path>
+    <path d="M18 6 Q11 22 4 30 Q18 14 18 6 Z"></path>
+  </g>
+</svg>

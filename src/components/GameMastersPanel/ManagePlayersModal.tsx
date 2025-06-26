@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import PlayerSheet from "../PlayersPanel/PlayerSheet";
+import type { ManagePlayersModalProps, Character } from "../../types";
 
-export default function ManagePlayersModal({ campaign, onClose }) {
-  const [viewCharId, setViewCharId] = useState(null);
-  const [allChars, setAllChars] = useState([]);
+export default function ManagePlayersModal({ campaign, onClose }: ManagePlayersModalProps) {
+  const [viewCharId, setViewCharId] = useState<string | null>(null);
+  const [allChars, setAllChars] = useState<Character[]>([]);
 
   // Load/refresh player characters EVERY TIME the modal is opened (when this component is mounted)
   useEffect(() => {

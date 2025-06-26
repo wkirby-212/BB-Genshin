@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import CampaignList from "./CampaignList";
 import CampaignEditor from "./CampaignEditor";
 import ManagePlayersModal from "./ManagePlayersModal";
+import type { Campaign, GameMastersPanelProps } from "../../types";
 
 // LocalStorage keys
 const LS_GM = "gm_user";
@@ -16,19 +17,19 @@ const getSavedCampaigns = () => {
     return [];
   }
 };
-const saveCampaigns = arr => localStorage.setItem(LS_CAMPAIGNS, JSON.stringify(arr));
+const saveCampaigns = (arr: Campaign[]) => localStorage.setItem(LS_CAMPAIGNS, JSON.stringify(arr));
 
-export default function GameMastersPanel() {
+export default function GameMastersPanel({}: GameMastersPanelProps) {
   // GM login state
   const [gmUser, setGmUser] = useState(localStorage.getItem(LS_GM) || "");
   const [gmPass, setGmPass] = useState("");
   const [loginError, setLoginError] = useState("");
   // Campaigns
-  const [campaigns, setCampaigns] = useState([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [showEditor, setShowEditor] = useState(false);
-  const [editingCampaign, setEditingCampaign] = useState(null);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   // Manage Players Modal
-  const [managePlayersCampaign, setManagePlayersCampaign] = useState(null);
+  const [managePlayersCampaign, setManagePlayersCampaign] = useState<Campaign | null>(null);
 
   // Load campaigns on login
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function GameMastersPanel() {
   }, [gmUser]);
 
   // Demo only: accept any password, save user to localStorage
-  function handleLogin(e) {
+  function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     if (gmUser.trim() === "") return setLoginError("Please enter a username.");
     localStorage.setItem(LS_GM, gmUser);
@@ -48,24 +49,24 @@ export default function GameMastersPanel() {
     setGmPass("");
   }
 
-  function handleCreateCampaign(newCamp) {
+  function handleCreateCampaign(newCamp: Campaign) {
     const updated = [...campaigns, newCamp];
     setCampaigns(updated);
     saveCampaigns(updated);
     setShowEditor(false);
   }
-  function handleEditCampaign(camp) {
+  function handleEditCampaign(camp: Campaign) {
     setEditingCampaign(camp);
     setShowEditor(true);
   }
-  function handleSaveEditCampaign(edited) {
+  function handleSaveEditCampaign(edited: Campaign) {
     const updated = campaigns.map(c => c.id === edited.id ? edited : c);
     setCampaigns(updated);
     saveCampaigns(updated);
     setShowEditor(false);
     setEditingCampaign(null);
   }
-  function handleDeleteCampaign(id) {
+  function handleDeleteCampaign(id: string) {
     if (!window.confirm("Delete this campaign?")) return;
     const updated = campaigns.filter(c => c.id !== id);
     setCampaigns(updated);

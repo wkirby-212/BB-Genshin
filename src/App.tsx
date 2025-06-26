@@ -1,9 +1,8 @@
 import { useState } from "react";
 import Login from "./components/Login/Login";
-import PlayersPanel from "./components/PlayersPanel/PlayersPanel"; // Placeholder for now
-import GameMastersPanel from "./components/GameMastersPanel/GameMastersPanel"; // Placeholder for now
-
-type User = { username: string; role: "player" | "gm" };
+import PlayersPanel from "./components/PlayersPanel/PlayersPanel";
+import GameMastersPanel from "./components/GameMastersPanel/GameMastersPanel";
+import type { User } from "./types";
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);

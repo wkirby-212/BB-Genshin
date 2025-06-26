@@ -1,6 +1,6 @@
-import React from "react";
+import type { CampaignListProps } from "../../types";
 
-export default function CampaignList({ campaigns, onCreate, onEdit, onDelete, onManagePlayers }) {
+export default function CampaignList({ campaigns, onCreate, onEdit, onDelete, onManagePlayers }: CampaignListProps) {
   return (
     <div style={{ marginTop: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

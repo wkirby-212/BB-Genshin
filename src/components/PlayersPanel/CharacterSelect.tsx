@@ -1,24 +1,25 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import type { CharacterSelectProps, Character, Campaign } from "../../types";
 
-export default function CharacterSelect() {
+export default function CharacterSelect({ characters }: CharacterSelectProps) {
   // ...existing character loading logic...
   const [showJoin, setShowJoin] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [joinMessage, setJoinMessage] = useState("");
-  const [selectedChar, setSelectedChar] = useState(null); // when "Join" clicked for a char
+  const [selectedChar, setSelectedChar] = useState<Character | null>(null); // when "Join" clicked for a char
 
-  function handleOpenJoin(char) {
+  function handleOpenJoin(char: Character) {
     setSelectedChar(char);
     setShowJoin(true);
     setJoinCode("");
     setJoinMessage("");
   }
-  function handleJoinSubmit(e) {
+  function handleJoinSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!joinCode.trim()) return;
     // --- Load campaigns from storage
     const allCampaigns = JSON.parse(localStorage.getItem("gm_campaigns") || "[]");
-    const campaign = allCampaigns.find(c => c.inviteCode === joinCode.trim().toUpperCase());
+    const campaign = allCampaigns.find((c: Campaign) => c.inviteCode === joinCode.trim().toUpperCase());
     if (!campaign) {
       setJoinMessage("No campaign found for that code.");
       return;
@@ -26,6 +27,7 @@ export default function CharacterSelect() {
     // --- Link character to campaign
     // Update campaign.playerIds
     if (!campaign.playerIds) campaign.playerIds = [];
+    if (!selectedChar) return;
     if (!campaign.playerIds.includes(selectedChar.id)) {
       campaign.playerIds.push(selectedChar.id);
     }
@@ -33,7 +35,7 @@ export default function CharacterSelect() {
     localStorage.setItem("gm_campaigns", JSON.stringify(allCampaigns));
     // --- Update character.campaignIds
     const allChars = JSON.parse(localStorage.getItem("player_characters") || "[]");
-    const idx = allChars.findIndex(c => c.id === selectedChar.id);
+    const idx = allChars.findIndex((c: Character) => c.id === selectedChar.id);
     if (idx !== -1) {
       if (!allChars[idx].campaignIds) allChars[idx].campaignIds = [];
       if (!allChars[idx].campaignIds.includes(campaign.id))

@@ -1,463 +1,523 @@
-import React, { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import type { PlayerSheetProps } from "../../types";
 
-// --- Asset imports ---
-import anemoIcon from "../../assets/anemo.svg";
-import geoIcon from "../../assets/geo.svg";
-import electroIcon from "../../assets/electro.svg";
-import hydroIcon from "../../assets/hydro.svg";
-import cryoIcon from "../../assets/cryo.svg";
-import pyroIcon from "../../assets/pyro.svg";
-import dendroIcon from "../../assets/dendro.svg";
-import diceD4 from "../../assets/dice-d4.svg";
-import diceD6 from "../../assets/dice-d6.svg";
-import diceD8 from "../../assets/dice-d8.svg";
-import diceD10 from "../../assets/dice-d10.svg";
-import diceD12 from "../../assets/dice-d12.svg";
-import profileRing from "../../assets/profile-ring.svg";
+// Icons for dice and visions
+import d4 from "../../assets/dice-d4.svg";
+import d6 from "../../assets/dice-d6.svg";
+import d8 from "../../assets/dice-d8.svg";
+import d10 from "../../assets/dice-d10.svg";
+import d12 from "../../assets/dice-d12.svg";
 import lifeMarker from "../../assets/life-marker.svg";
+import lifeFilled from "../../assets/life-filled.svg";
 import deathMarker from "../../assets/death-marker.svg";
-import borderGold from "../../assets/border-gold.svg";
+import visionAnemo from "../../assets/anemo.svg";
+import visionGeo from "../../assets/geo.svg";
+import visionElectro from "../../assets/electro.svg";
+import visionHydro from "../../assets/hydro.svg";
+import visionCryo from "../../assets/cryo.svg";
+import visionPyro from "../../assets/pyro.svg";
+import visionDendro from "../../assets/dendro.svg";
 
-// --- Stat Group Setup ---
-type StatGroup = {
-  group: string;
-  stats: string[];
+const defaultCharacter = {
+  id: "",
+  name: "",
+  vision: "Dendro",
+  rank: 1,
+  evasion: 0,
+  speed: 30,
+  pronouns: "",
+  career: "",
+  background: "",
+  specialty: "",
+  damage: "D6",
+  currentHp: 10,
+  maxHp: 10,
+  careerDice: "D6",
+  lifeMarkers: [false, false, false],
+  deathMarkers: [false, false, false],
+  race: "",
+  racialFeatures: "",
+  portrait: null,
+  // Add stat groups here:
+  stats: {
+    Strength: 0, Grip: 0, Overpower: 0, Speed: 0,
+    Willpower: 0, Recovery: 0, Survival: 0, Leadership: 0,
+    StreetSmarts: 0, Gossip: 0, Communication: 0, Adaption: 0,
+    Immunity: 0, Endurance: 0, Resistance: 0, Health: 0,
+    Presence: 0, Perception: 0, Investigation: 0, Insight: 0,
+  },
 };
 
-const statGroups: StatGroup[] = [
-  { group: "Arcane", stats: ["Magical Affinity", "Arcane Sense", "Healing Ability", "Aura"] },
-  { group: "Knowledge", stats: ["Book Smarts", "Religion", "History", "Anatomy"] },
-  { group: "Cunning", stats: ["Street Smarts", "Gossip", "Communication", "Adaption"] },
-  { group: "Might", stats: ["Strength", "Grip", "Overpower", "Speed"] },
-  { group: "Resilience", stats: ["Willpower", "Recovery", "Survival", "Leadership"] },
-  { group: "Physical Fortitude", stats: ["Immunity", "Endurance", "Resistance", "Health"] },
-  { group: "Awareness", stats: ["Presence", "Perception", "Investigation", "Insight"] },
-  { group: "Dexterity", stats: ["Agility", "Flexibility", "Sleight of Hand", "Aim"] }
-];
-
-function getStatBarColor(val: number) {
-  if (val <= 3) return "#e34242";
-  if (val <= 6) return "#f8e969";
-  return "#51d660";
-}
-
-// --- Vision/Dice asset options ---
-const visionOptions = [
-  { label: "Anemo", icon: anemoIcon },
-  { label: "Geo", icon: geoIcon },
-  { label: "Electro", icon: electroIcon },
-  { label: "Hydro", icon: hydroIcon },
-  { label: "Cryo", icon: cryoIcon },
-  { label: "Pyro", icon: pyroIcon },
-  { label: "Dendro", icon: dendroIcon },
-];
-
 const diceOptions = [
-  { label: "D4", icon: diceD4 },
-  { label: "D6", icon: diceD6 },
-  { label: "D8", icon: diceD8 },
-  { label: "D10", icon: diceD10 },
-  { label: "D12", icon: diceD12 },
+  { label: "D4", icon: d4 },
+  { label: "D6", icon: d6 },
+  { label: "D8", icon: d8 },
+  { label: "D10", icon: d10 },
+  { label: "D12", icon: d12 },
 ];
 
- function getVisionGradient(vision: string) {
-switch (vision) {
-case "Anemo": return "linear-gradient(135deg, #e0fffc 80%, #b2f3e6 100%)";
-case "Geo": return "linear-gradient(135deg, #fff8e0 80%, #f3e7b2 100%)";
-case "Electro": return "linear-gradient(135deg, #f0e0ff 80%, #d0b2f3 100%)";
-case "Hydro": return "linear-gradient(135deg, #e0f4ff 80%, #b2d8f3 100%)";
-case "Cryo": return "linear-gradient(135deg, #e0fbff 80%, #b2e2f3 100%)";
-case "Pyro": return "linear-gradient(135deg, #fff0e0 80%, #f3c1b2 100%)";
-case "Dendro": default: return "linear-gradient(135deg, #e7ffe0 80%, #b8f3b2 100%)";
- }
-}
+// Visions and icons
+const visionOptions = [
+  { label: "Anemo", color: "#90e9f4" },
+  { label: "Geo", color: "#e4c869" },
+  { label: "Electro", color: "#ca89eb" },
+  { label: "Hydro", color: "#82b1f9" },
+  { label: "Cryo", color: "#b0d8fa" },
+  { label: "Pyro", color: "#ff8880" },
+  { label: "Dendro", color: "#96f586" }
+];
 
-// If you want to pass user, uncomment the below line:
-// type Props = { user: { username: string } };
-// export default function PlayerSheet({ user }: Props) {
-export default function PlayerSheet({ character, onBack, readOnly }) {
-  const [charState, setCharState] = useState({ ...character });
-  // -- State
-  const sheetFont = "'Segoe UI', 'Arial Rounded MT Bold', Arial, sans-serif";
-  const [vision, setVision] = useState("");
-  const visionBgClass = `bg-${vision.toLowerCase()}`;
-  const [charName, setCharName] = useState("");
-  const [rank, setRank] = useState(1);
-  const [evasion, setEvasion] = useState(0);
-  const [speed, setSpeed] = useState(0);
-  const [pronouns, setPronouns] = useState("");
-  const [career, setCareer] = useState("");
-  const [background, setBackground] = useState("");
-  const [specialty, setSpecialty] = useState("");
-  const [damage, setDamage] = useState("D6");
-  const [currentHp, setCurrentHp] = useState(1);
-  const [maxHp, setMaxHp] = useState(1);
-  const [careerDice, setCareerDice] = useState("D6");
-  const [lifeMarkers, setLifeMarkers] = useState([false, false, false]);
-  const [deathMarkers, setDeathMarkers] = useState([false, false, false]);
-  const [race, setRace] = useState("");
-  const [racialFeatures, setRacialFeatures] = useState("");
-  const [portrait, setPortrait] = useState<string | null>(null);
-  const [stats, setStats] = useState<{ [key: string]: number }>(
-    Object.fromEntries(statGroups.flatMap(g => g.stats.map(s => [s, 0])))
-  );
+// Vision icons mapping
+const visionIcons: Record<string, string> = {
+  Anemo: visionAnemo,
+  Geo: visionGeo,
+  Electro: visionElectro,
+  Hydro: visionHydro,
+  Cryo: visionCryo,
+  Pyro: visionPyro,
+  Dendro: visionDendro
+};
 
-  // For demo, just use "guest". For real use, get from login (user.username).
-  const username = "guest";
+export default function PlayerSheet({ character, readOnly = false, onBack }: PlayerSheetProps) {
+  const [charState, setCharState] = useState({ ...defaultCharacter, ...character });
+  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Portrait upload handler
+  // Save character to localStorage
+  function saveCharacterToStorage(character: any) {
+    const allChars = JSON.parse(localStorage.getItem("player_characters") || "[]");
+    const index = allChars.findIndex((c: any) => c.id === character.id);
+    if (index >= 0) {
+      allChars[index] = character;
+    } else {
+      allChars.push(character);
+    }
+    localStorage.setItem("player_characters", JSON.stringify(allChars));
+    
+    // Trigger storage event for cross-tab/component sync
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'player_characters',
+      newValue: JSON.stringify(allChars),
+      storageArea: localStorage
+    }));
+  }
+
+  // Debounced save
+  function handleChange(field: string, value: any) {
+    setCharState(prev => {
+      const newState = { ...prev, [field]: value };
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      saveTimeout.current = setTimeout(() => {
+        saveCharacterToStorage(newState);
+      }, 10000);
+      return newState;
+    });
+  }
+
+  // For stat sliders (nested in stats)
+  function handleStatChange(stat: string, value: number) {
+    setCharState(prev => {
+      const newStats = { ...prev.stats, [stat]: value };
+      const newState = { ...prev, stats: newStats };
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      saveTimeout.current = setTimeout(() => {
+        saveCharacterToStorage(newState);
+      }, 10000);
+      return newState;
+    });
+  }
+
+  // Life/Death marker toggles
+  function handleMarkerToggle(type: "life" | "death", idx: number) {
+    setCharState(prev => {
+      const arr = type === "life" ? [...prev.lifeMarkers] : [...prev.deathMarkers];
+      arr[idx] = !arr[idx];
+      const newState = {
+        ...prev,
+        lifeMarkers: type === "life" ? arr : prev.lifeMarkers,
+        deathMarkers: type === "death" ? arr : prev.deathMarkers
+      };
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      saveTimeout.current = setTimeout(() => {
+        saveCharacterToStorage(newState);
+      }, 10000);
+      return newState;
+    });
+  }
+
+  // Portrait upload
   function handlePortraitUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) {
+    if (e.target.files && e.target.files[0]) {
       const reader = new FileReader();
-      reader.onload = (evt) => setPortrait(evt.target?.result as string);
-      reader.readAsDataURL(file);
+      reader.onload = ev => {
+        handleChange("portrait", ev.target?.result);
+      };
+      reader.readAsDataURL(e.target.files[0]);
     }
   }
 
-  // Marker handlers
-  const handleMarkerToggle = (type: "life" | "death", idx: number) => {
-    if (type === "life") {
-      setLifeMarkers(lm => lm.map((v, i) => (i === idx ? !v : v)));
-    } else {
-      setDeathMarkers(dm => dm.map((v, i) => (i === idx ? !v : v)));
-    }
-  };
-
-  const visionObj = visionOptions.find(v => v.label === vision);
-
-  // --- Save/Load helpers
-    function handleChange(field, value) {
-    setCharState(s => ({ ...s, [field]: value }));
-  }
-
+  // Manual save/load
   function handleSave() {
-    // Load all characters
-    const chars = JSON.parse(localStorage.getItem("player_characters") || "[]");
-    // Find or add this character
-    const idx = chars.findIndex(c => c.id === charState.id);
-    if (idx === -1) {
-      chars.push(charState);
-    } else {
-      chars[idx] = charState;
-    }
-    localStorage.setItem("player_characters", JSON.stringify(chars));
-    alert("Character sheet saved!");
-  }
-  
-  function getSheetData() {
-    return {
-      vision, charName, rank, evasion, speed, pronouns, career, background, specialty, damage,
-      currentHp, maxHp, careerDice, lifeMarkers, deathMarkers, race, racialFeatures, portrait, stats,
-    };
-  }
-  function loadSheetData(data: any) {
-    if (!data) return;
-    setVision(data.vision || "Dendro");
-    setCharName(data.charName || "");
-    setRank(data.rank || 1);
-    setEvasion(data.evasion || 0);
-    setSpeed(data.speed || 0);
-    setPronouns(data.pronouns || "");
-    setCareer(data.career || "");
-    setBackground(data.background || "");
-    setSpecialty(data.specialty || "");
-    setDamage(data.damage || "D6");
-    setCurrentHp(data.currentHp || 1);
-    setMaxHp(data.maxHp || 1);
-    setCareerDice(data.careerDice || "D6");
-    setLifeMarkers(data.lifeMarkers || [false, false, false]);
-    setDeathMarkers(data.deathMarkers || [false, false, false]);
-    setRace(data.race || "");
-    setRacialFeatures(data.racialFeatures || "");
-    setPortrait(data.portrait || null);
-    setStats(data.stats || Object.fromEntries(statGroups.flatMap(g => g.stats.map(s => [s, 0]))));
-  }
-  function handleSave() {
-    localStorage.setItem(`ttrpg-character-${username}`, JSON.stringify(getSheetData()));
+    saveCharacterToStorage(charState);
     alert("Character sheet saved!");
   }
   function handleLoad() {
-    const data = localStorage.getItem(`ttrpg-character-${username}`);
+    const allChars = JSON.parse(localStorage.getItem("player_characters") || "[]");
+    const data = allChars.find((c: any) => c.id === charState.id);
     if (!data) {
       alert("No saved character sheet found!");
       return;
     }
-    loadSheetData(JSON.parse(data));
+    setCharState(data);
     alert("Character sheet loaded!");
   }
 
-return (
-  <div
-    className={visionBgClass}
-    style={{
-      position: "relative",
-      maxWidth: 860,
-      margin: "28px auto",
-      borderRadius: 22,
-      boxShadow: "0 4px 24px #0002",
-      padding: "2.5vw 3vw 3vw 3vw",
-      overflow: "hidden",
-      fontFamily: sheetFont,
-      color: "var(--sheet-text-color)",
-      fontSize: 15,
-      minHeight: 880,
-      width: "94vw"
-    }}
-  >
-{onBack && (
-  <button
-    onClick={onBack}
-    style={{
-      borderRadius: 8,
-      padding: "6px 20px",
-      fontWeight: "bold",
-      position: "absolute",
-      left: 24,
-      top: 24,
-      zIndex: 999,
-      border: "none",
-      background: "#eee",
-    }}
-  >
-    Back
-  </button>
-)}
-    {/* Top row: Portrait + Fillable Info + Vision Icon */}
-    <div style={{ display: "flex", gap: 32, position: "relative", zIndex: 3 }}>
-      {/* Portrait area */}
-      <div style={{ position: "relative", width: 140, height: 160 }}>
-        <img src={profileRing} alt="Portrait Frame" style={{ width: 140, height: 140, position: "absolute", top: 0, left: 0 }} />
-        {portrait ? (
-          <img src={portrait} alt="Portrait" style={{
-            width: 112,
-            height: 112,
-            position: "absolute",
-            top: 14,
-            left: 14,
-            borderRadius: "50%",
-            objectFit: "cover"
-          }} />
-        ) : (
-          <div style={{
-            width: 112,
-            height: 112,
-            position: "absolute",
-            top: 14,
-            left: 14,
-            borderRadius: "50%",
-            background: "#a7e1a8",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#347d40",
-            fontSize: 16
-          }}>
-            No Portrait
-          </div>
-        )}
-        {!readOnly && (
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handlePortraitUpload}
-            style={{
-              position: "absolute",
-              top: 120,
-              left: 20,
-              zIndex: 4
-            }}
-          />
-        )}
-      </div>
-      {/* Fillable Info */}
-      <div style={{ flex: 1 }}>
-        <input
-          value={charName}
-          onChange={e => setCharName(e.target.value)}
-          placeholder="Character Name"
-          style={{
-            fontWeight: "bold",
-            fontSize: 28,
-            border: "none",
-            borderBottom: "2px solid #b9ddb9",
-            marginBottom: 8,
-            width: "80%"
-          }}
-          maxLength={32}
-          disabled={readOnly}
-        />
-        <div style={{ display: "flex", gap: 16, marginTop: 10 }}>
-          <label>Rank:
-            <input type="number" min={1} max={20} value={rank}
-              onChange={e => setRank(Number(e.target.value))}
-              style={{ width: 48, marginLeft: 4 }}
-              disabled={readOnly}
-            />
-          </label>
-          <label>Evasion:
-            <input type="number" min={0} max={999} value={evasion}
-              onChange={e => setEvasion(Number(e.target.value))}
-              style={{ width: 48, marginLeft: 4 }}
-              disabled={readOnly}
-            />
-          </label>
-          <label>Speed:
-            <input type="number" min={0} max={999} value={speed}
-              onChange={e => setSpeed(Number(e.target.value))}
-              style={{ width: 48, marginLeft: 4 }}
-              disabled={readOnly}
-            /> ft
-          </label>
-          <label>Pronouns:
-            <input
-              value={pronouns}
-              onChange={e => setPronouns(e.target.value)}
-              style={{ width: 70, marginLeft: 4 }}
-              maxLength={20}
-              disabled={readOnly}
-            />
-          </label>
-        </div>
-        <div style={{ display: "flex", gap: 16, marginTop: 10 }}>
-          <label>Career:
-            <input value={career} onChange={e => setCareer(e.target.value)} style={{ width: 90, marginLeft: 4 }} maxLength={30} disabled={readOnly} />
-          </label>
-          <label>Background:
-            <input value={background} onChange={e => setBackground(e.target.value)} style={{ width: 90, marginLeft: 4 }} maxLength={30} disabled={readOnly} />
-          </label>
-          <label>Specialty:
-            <input value={specialty} onChange={e => setSpecialty(e.target.value)} style={{ width: 90, marginLeft: 4 }} maxLength={30} disabled={readOnly} />
-          </label>
-          <label>Race:
-            <input value={race} onChange={e => setRace(e.target.value)} style={{ width: 90, marginLeft: 4 }} maxLength={20} disabled={readOnly} />
-          </label>
-        </div>
-      </div>
-      {/* Vision selector + icon */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <select value={vision} onChange={e => setVision(e.target.value)} style={{ marginBottom: 10 }} disabled={readOnly}>
-          {visionOptions.map(opt =>
-            <option key={opt.label} value={opt.label}>{opt.label}</option>
-          )}
-        </select>
-        <img src={visionObj?.icon} alt={vision + " Vision"} width={64} />
-      </div>
-    </div>
-    {/* Dice, HP, Career Dice */}
-    <div style={{ display: "flex", gap: 36, alignItems: "center", marginTop: 16, position: "relative", zIndex: 3 }}>
-      <label>Damage:{" "}
-        <select value={damage} onChange={e => setDamage(e.target.value)} disabled={readOnly}>
-          {diceOptions.map(d => <option key={d.label} value={d.label}>{d.label}</option>)}
-        </select>
-        <img src={diceOptions.find(d => d.label === damage)?.icon} alt={damage} width={36} style={{ verticalAlign: "middle", marginLeft: 4 }} />
-      </label>
-      <label>Current HP:
-        <input type="number" min={0} max={999} value={currentHp}
-          onChange={e => setCurrentHp(Number(e.target.value))} style={{ width: 44, marginLeft: 4 }} disabled={readOnly} />
-      </label>
-      /
-      <label>Max HP:
-        <input type="number" min={1} max={999} value={maxHp}
-          onChange={e => setMaxHp(Number(e.target.value))} style={{ width: 44, marginLeft: 4 }} disabled={readOnly} />
-      </label>
-      <label>Career Dice:
-        <select value={careerDice} onChange={e => setCareerDice(e.target.value)} disabled={readOnly}>
-          {diceOptions.map(d => <option key={d.label} value={d.label}>{d.label}</option>)}
-        </select>
-        <img src={diceOptions.find(d => d.label === careerDice)?.icon} alt={careerDice} width={36} style={{ verticalAlign: "middle", marginLeft: 4 }} />
-      </label>
-    </div>
-    {/* Life/Death Markers */}
-    <div style={{ marginTop: 18, display: "flex", alignItems: "center", gap: 28, position: "relative", zIndex: 3 }}>
-      <div>
-        <span>Life: </span>
-        {lifeMarkers.map((checked, idx) => (
-          <img key={idx} src={lifeMarker} alt="Life" width={28} style={{
-            filter: checked ? "brightness(1.2) drop-shadow(0 0 6px #8cffb3)" : "grayscale(1) opacity(0.5)",
-            cursor: readOnly ? "default" : "pointer", marginLeft: 3
-          }} onClick={() => !readOnly && handleMarkerToggle("life", idx)} />
-        ))}
-      </div>
-      <div>
-        <span>Death: </span>
-        {deathMarkers.map((checked, idx) => (
-          <img key={idx} src={deathMarker} alt="Death" width={28} style={{
-            filter: checked ? "brightness(1.2) drop-shadow(0 0 6px #ffb1b1)" : "grayscale(1) opacity(0.5)",
-            cursor: readOnly ? "default" : "pointer", marginLeft: 3
-          }} onClick={() => !readOnly && handleMarkerToggle("death", idx)} />
-        ))}
-      </div>
-    </div>
-    {/* Racial Features */}
-    <div style={{ marginTop: 18, position: "relative", zIndex: 3 }}>
-      <label>Racial Features:
-        <input value={racialFeatures} maxLength={150} onChange={e => setRacialFeatures(e.target.value)} style={{ width: "80%", marginLeft: 4 }} disabled={readOnly} />
-      </label>
-    </div>
+  // Load character data on mount
+  useEffect(() => {
+    console.log('PlayerSheet mounted with character:', character);
+    if (character && character.id) {
+      const mergedState = { ...defaultCharacter, ...character };
+      console.log('Setting character state:', mergedState);
+      setCharState(mergedState);
+    } else {
+      console.log('No character provided or missing ID');
+    }
+    return () => {
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    };
+  }, [character]);
 
-    {/* Stat Groups */}
-    <div style={{ display: "flex", gap: 28, marginTop: 34, alignItems: "flex-start", position: "relative", zIndex: 3 }}>
-      {[0, 1].map(col => (
-        <div key={col} style={{ flex: 1 }}>
-          {statGroups.slice(col * 4, col * 4 + 4).map(group => (
-            <div key={group.group} style={{ marginBottom: 26 }}>
+  // Stat groups (for visual sections)
+  const statGroups = [
+    { group: "Strength", stats: ["Strength", "Grip", "Overpower", "Speed"] },
+    { group: "Willpower", stats: ["Willpower", "Recovery", "Survival", "Leadership"] },
+    { group: "StreetSmarts", stats: ["StreetSmarts", "Gossip", "Communication", "Adaption"] },
+    { group: "Immunity", stats: ["Immunity", "Endurance", "Resistance", "Health"] },
+    { group: "Presence", stats: ["Presence", "Perception", "Investigation", "Insight"] },
+  ];
+
+  // Vision
+  const visionIcon = visionIcons?.[charState.vision] || "";
+
+  return (
+    <div style={{
+      padding: 24,
+      maxWidth: 900,
+      margin: "32px auto",
+      background: "var(--sheet-bg, #f8fff4)",
+      color: "var(--sheet-text-color, #222)",
+      borderRadius: 20,
+      boxShadow: "0 4px 24px #0002",
+      position: "relative"
+    }}>
+      {onBack && (
+        <button
+          onClick={onBack}
+          style={{
+            position: "absolute", left: 16, top: 16, borderRadius: 8,
+            background: "#eee", border: "none", padding: "6px 22px", fontWeight: "bold"
+          }}>
+          Back
+        </button>
+      )}
+
+      <h2 style={{ textAlign: "center", marginTop: 0 }}>Player Character Sheet</h2>
+
+      {/* Portrait and Vision */}
+      <div style={{ display: "flex", gap: 36 }}>
+        <div style={{ width: 140 }}>
+          <div style={{ position: "relative" }}>
+            {charState.portrait ? (
+              <img src={charState.portrait} alt="Portrait" style={{
+                width: 112, height: 112, borderRadius: "50%", objectFit: "cover"
+              }} />
+            ) : (
               <div style={{
-                fontWeight: "bold",
-                fontSize: 17,
-                color: "#25783b",
-                marginBottom: 4,
-                letterSpacing: 1.2
+                width: 112, height: 112, borderRadius: "50%", background: "#a7e1a8",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "#347d40", fontSize: 16
               }}>
-                {group.group}
+                No Portrait
               </div>
-              {group.stats.map(stat => (
-                <div key={stat} style={{ display: "flex", alignItems: "center", marginBottom: 7 }}>
-                  <div style={{ minWidth: 128, marginRight: 8 }}>{stat}</div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={10}
-                    value={stats[stat]}
-                    onChange={e =>
-                      setStats(s => ({ ...s, [stat]: Number(e.target.value) }))
-                    }
-                    style={{ flex: 1, accentColor: getStatBarColor(stats[stat]) }}
-                    disabled={readOnly}
-                  />
-                  <div style={{
-                    width: 36,
-                    marginLeft: 8,
-                    fontWeight: "bold",
-                    color: getStatBarColor(stats[stat])
-                  }}>
-                    {stats[stat]}
-                  </div>
-                </div>
+            )}
+            {!readOnly && (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePortraitUpload}
+                style={{ marginTop: 8, width: 112 }}
+              />
+            )}
+          </div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <label>
+            Name:
+            <input
+              value={charState.name}
+              onChange={e => handleChange("name", e.target.value)}
+              disabled={readOnly}
+              style={{ width: 200, marginLeft: 6 }}
+            />
+          </label>
+          <label style={{ marginLeft: 18 }}>
+            Rank:
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={charState.rank}
+              onChange={e => handleChange("rank", Number(e.target.value))}
+              disabled={readOnly}
+              style={{ width: 55, marginLeft: 6 }}
+            />
+          </label>
+          <label style={{ marginLeft: 18 }}>
+            Vision:
+            <select
+              value={charState.vision}
+              onChange={e => handleChange("vision", e.target.value)}
+              disabled={readOnly}
+              style={{ marginLeft: 6 }}
+            >
+              {visionOptions.map(opt => (
+                <option key={opt.label} value={opt.label}>{opt.label}</option>
               ))}
-            </div>
+            </select>
+            {visionIcon && <img src={visionIcon} alt={charState.vision} width={38} style={{ verticalAlign: "middle", marginLeft: 10 }} />}
+          </label>
+        </div>
+      </div>
+
+      {/* Fillable Info */}
+      <div style={{ marginTop: 14, display: "flex", gap: 28 }}>
+        <label>
+          Evasion:
+          <input
+            type="number"
+            value={charState.evasion}
+            onChange={e => handleChange("evasion", Number(e.target.value))}
+            disabled={readOnly}
+            style={{ width: 80, marginLeft: 4 }}
+          />
+        </label>
+        <label>
+          Speed:
+          <input
+            type="number"
+            value={charState.speed}
+            onChange={e => handleChange("speed", Number(e.target.value))}
+            disabled={readOnly}
+            style={{ width: 80, marginLeft: 4 }}
+          /> ft
+        </label>
+        <label>
+          Pronouns:
+          <input
+            value={charState.pronouns}
+            onChange={e => handleChange("pronouns", e.target.value)}
+            disabled={readOnly}
+            style={{ width: 90, marginLeft: 4 }}
+          />
+        </label>
+        <label>
+          Career:
+          <input
+            value={charState.career}
+            onChange={e => handleChange("career", e.target.value)}
+            disabled={readOnly}
+            style={{ width: 100, marginLeft: 4 }}
+          />
+        </label>
+        <label>
+          Background:
+          <input
+            value={charState.background}
+            onChange={e => handleChange("background", e.target.value)}
+            disabled={readOnly}
+            style={{ width: 110, marginLeft: 4 }}
+          />
+        </label>
+        <label>
+          Specialty:
+          <input
+            value={charState.specialty}
+            onChange={e => handleChange("specialty", e.target.value)}
+            disabled={readOnly}
+            style={{ width: 110, marginLeft: 4 }}
+          />
+        </label>
+        <label>
+          Race:
+          <input
+            value={charState.race}
+            onChange={e => handleChange("race", e.target.value)}
+            disabled={readOnly}
+            style={{ width: 90, marginLeft: 4 }}
+          />
+        </label>
+      </div>
+
+      {/* Damage/Career Dice/HP */}
+      <div style={{ marginTop: 14, display: "flex", gap: 38, alignItems: "center" }}>
+        <label>
+          Damage:
+          <select
+            value={charState.damage}
+            onChange={e => handleChange("damage", e.target.value)}
+            disabled={readOnly}
+            style={{ marginLeft: 4 }}
+          >
+            {diceOptions.map(d => (
+              <option key={d.label} value={d.label}>{d.label}</option>
+            ))}
+          </select>
+          <img src={diceOptions.find(d => d.label === charState.damage)?.icon} alt={charState.damage} width={30} style={{ marginLeft: 4, verticalAlign: "middle" }} />
+        </label>
+        <label>
+          Current HP:
+          <input
+            type="number"
+            value={charState.currentHp}
+            onChange={e => handleChange("currentHp", Number(e.target.value))}
+            disabled={readOnly}
+            style={{ width: 50, marginLeft: 4 }}
+          />
+        </label>
+        /
+        <label>
+          Max HP:
+          <input
+            type="number"
+            value={charState.maxHp}
+            onChange={e => handleChange("maxHp", Number(e.target.value))}
+            disabled={readOnly}
+            style={{ width: 50, marginLeft: 4 }}
+          />
+        </label>
+        <label>
+          Career Dice:
+          <select
+            value={charState.careerDice}
+            onChange={e => handleChange("careerDice", e.target.value)}
+            disabled={readOnly}
+            style={{ marginLeft: 4 }}
+          >
+            {diceOptions.map(d => (
+              <option key={d.label} value={d.label}>{d.label}</option>
+            ))}
+          </select>
+          <img src={diceOptions.find(d => d.label === charState.careerDice)?.icon} alt={charState.careerDice} width={30} style={{ marginLeft: 4, verticalAlign: "middle" }} />
+        </label>
+      </div>
+
+      {/* Life/Death Markers */}
+      <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 32 }}>
+        <div>
+          <span>Life: </span>
+          {charState.lifeMarkers.map((checked, idx) => (
+            <img
+              key={idx}
+              src={checked ? lifeFilled : lifeMarker}
+              alt="Life"
+              width={24}
+              style={{
+                filter: checked ? "brightness(1.15) drop-shadow(0 0 5px #8cffb3)" : "grayscale(1) opacity(0.5)",
+                cursor: readOnly ? "default" : "pointer",
+                marginLeft: 2
+              }}
+              onClick={() => !readOnly && handleMarkerToggle("life", idx)}
+            />
           ))}
         </div>
-      ))}
-    </div>
-
-    {/* Save/Load Buttons (Hide in readOnly) */}
-    {!readOnly && (
-      <div style={{ marginTop: 32, display: "flex", gap: 16, position: "relative", zIndex: 3 }}>
-        <button onClick={handleSave} style={{
-          background: "#51d660", color: "#fff", fontWeight: "bold",
-          border: "none", borderRadius: 8, padding: "8px 18px", cursor: "pointer"
-        }}>
-          Save
-        </button>
-        <button onClick={handleLoad} style={{
-          background: "#388a2b", color: "#fff", fontWeight: "bold",
-          border: "none", borderRadius: 8, padding: "8px 18px", cursor: "pointer"
-        }}>
-          Load
-        </button>
+        <div>
+          <span>Death: </span>
+          {charState.deathMarkers.map((checked, idx) => (
+            <img
+              key={idx}
+              src={deathMarker}
+              alt="Death"
+              width={24}
+              style={{
+                filter: checked ? "brightness(1.2) drop-shadow(0 0 5px #ffb1b1)" : "grayscale(1) opacity(0.5)",
+                cursor: readOnly ? "default" : "pointer",
+                marginLeft: 2
+              }}
+              onClick={() => !readOnly && handleMarkerToggle("death", idx)}
+            />
+          ))}
+        </div>
       </div>
-    )}
-  </div>
-);
+
+      {/* Racial Features */}
+      <div style={{ marginTop: 12 }}>
+        <label>
+          Racial Features:
+          <input
+            value={charState.racialFeatures}
+            maxLength={150}
+            onChange={e => handleChange("racialFeatures", e.target.value)}
+            disabled={readOnly}
+            style={{ width: "70%", marginLeft: 6 }}
+          />
+        </label>
+      </div>
+
+      {/* Stat Groups with sliders */}
+      <div style={{ display: "flex", gap: 36, marginTop: 28, alignItems: "flex-start" }}>
+        {statGroups.map(group => (
+          <div key={group.group} style={{ flex: 1 }}>
+            <div style={{
+              fontWeight: "bold",
+              fontSize: 16,
+              color: "#25783b",
+              marginBottom: 5,
+              letterSpacing: 1.2
+            }}>
+              {group.group}
+            </div>
+            {group.stats.map(stat => (
+              <div key={stat} style={{ display: "flex", alignItems: "center", marginBottom: 7 }}>
+                <div style={{ minWidth: 110, marginRight: 8 }}>{stat}</div>
+                <input
+                  type="range"
+                  min={0}
+                  max={10}
+                  value={charState.stats[stat]}
+                  onChange={e => handleStatChange(stat, Number(e.target.value))}
+                  disabled={readOnly}
+                  style={{ flex: 1, accentColor: "#46d660" }}
+                />
+                <div style={{
+                  width: 32,
+                  marginLeft: 8,
+                  fontWeight: "bold",
+                  color: "#25783b"
+                }}>
+                  {charState.stats[stat]}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Save/Load Buttons */}
+      {!readOnly && (
+        <div style={{ marginTop: 28, display: "flex", gap: 14 }}>
+          <button onClick={handleSave} style={{
+            background: "#51d660", color: "#fff", fontWeight: "bold",
+            border: "none", borderRadius: 8, padding: "8px 18px", cursor: "pointer"
+          }}>
+            Save
+          </button>
+          <button onClick={handleLoad} style={{
+            background: "#388a2b", color: "#fff", fontWeight: "bold",
+            border: "none", borderRadius: 8, padding: "8px 18px", cursor: "pointer"
+          }}>
+            Load
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }

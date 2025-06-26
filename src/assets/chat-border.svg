@@ -1,0 +1,18 @@
+<svg viewBox="0 0 420 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Drop shadow -->
+  <filter id="shadow" x="-12" y="-12" width="444" height="224">
+    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#c89c3c" flood-opacity="0.09"></feDropShadow>
+  </filter>
+  <!-- Outer border -->
+  <rect x="8" y="8" width="404" height="184" rx="28" fill="none" stroke="#c89c3c" stroke-width="3.5" filter="url(#shadow)"></rect>
+  <!-- Inner border -->
+  <rect x="18" y="18" width="384" height="164" rx="20" fill="none" stroke="#fff6ce" stroke-width="2"></rect>
+  <!-- Corner accents (subtle filigree) -->
+  <path d="M34 19 Q14 30 22 50" stroke="#c89c3c" stroke-width="1.5" fill="none"></path>
+  <path d="M386 19 Q406 30 398 50" stroke="#c89c3c" stroke-width="1.5" fill="none"></path>
+  <path d="M34 181 Q14 170 22 150" stroke="#c89c3c" stroke-width="1.5" fill="none"></path>
+  <path d="M386 181 Q406 170 398 150" stroke="#c89c3c" stroke-width="1.5" fill="none"></path>
+  <!-- Top-center small flourish -->
+  <ellipse cx="210" cy="7" rx="13" ry="4.2" fill="#fff6ce" stroke="#c89c3c" stroke-width="1.2"></ellipse>
+  <ellipse cx="210" cy="7" rx="5" ry="1.8" fill="#c89c3c"></ellipse>
+</svg>
